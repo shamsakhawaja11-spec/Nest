@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import { PrismaService } from 'src/database/prisma.service';
 import { RegisterDto } from './dto/register.dto';
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -53,5 +54,17 @@ export class AuthService{
         };
         const accessToken=this.jwtService.sign(payload);
         return {accessToken};
+    }
+    async getMe(id:string){
+        const user=await this.prisma.user.findUnique({where:{id:id}});
+        if(!user){
+            throw new NotFoundException('User not found');
+        }
+        return {
+            id:user.id,
+            name:user.name,
+            email:user.email,
+            createdAt:user.createdAt,
+        };
     }
 }
