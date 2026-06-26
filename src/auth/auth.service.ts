@@ -6,6 +6,7 @@ import { ConflictException, Injectable, NotFoundException, UnauthorizedException
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { UpdateDto } from './dto/update.dto';
 @Injectable()
 export class AuthService{
     constructor(
@@ -66,5 +67,28 @@ export class AuthService{
             email:user.email,
             createdAt:user.createdAt,
         };
+    }
+    async UpdateProfile(dto:UpdateDto,id:string){
+        const user=await this.prisma.user.findUnique({where:{id:id}});
+        if(!user){
+            throw new NotFoundException('user not found');
+        }
+        // if(dto.email)
+        // if(dto.email!==undefined)
+        if(dto.email!=null){
+            const isEmailValid=await this.prisma.user.findUnique({where:{email:dto.email}});
+            if(isEmailValid?.id!=id){
+                throw new ConflictException('email already exists');
+            }
+        }
+        const updatedUser=await this.prisma.user.update({where:{id:id},data:{email:dto.email,name:dto.name}})
+        return {
+            id:updatedUser.id,
+            email:updatedUser.email,
+            name:updatedUser.name,
+            createdAt:updatedUser.createdAt,
+            updatedAt:updatedUser.updatedAt
+        }
+
     }
 }
