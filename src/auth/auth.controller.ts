@@ -7,6 +7,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { UpdateDto } from "./dto/update.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 @Controller('auth')
 export class AuthController{
     constructor(private readonly authService:AuthService){}
@@ -27,5 +28,10 @@ export class AuthController{
     @Patch('me')
     update(@Body()dto:Partial<UpdateDto>,@Request()req:any){
         return this.authService.UpdateProfile(dto,req.user.userId);
+    }
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('change-password')
+    async changePassword(@Req()req:any,@Body() dto:ChangePasswordDto){
+        return this.authService.changePassword(req.user.userId,dto);
     }
 }

@@ -2,11 +2,12 @@
 /* eslint-disable prettier/prettier */
 import { PrismaService } from 'src/database/prisma.service';
 import { RegisterDto } from './dto/register.dto';
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Injectable, NotFoundException, Patch, Req, UnauthorizedException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateDto } from './dto/update.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 @Injectable()
 export class AuthService{
     constructor(
@@ -89,6 +90,25 @@ export class AuthService{
             createdAt:updatedUser.createdAt,
             updatedAt:updatedUser.updatedAt
         }
-
     }
+    async changePassword(id:string,dto:ChangePasswordDto){
+        const user=await this.prisma.user.findUnique({where:{id}});
+        if(!user){
+            throw new NotFoundException('user not found');
+        }
+        const password=user.password;
+        const passwordExists=await bcrypt.compare(dto.currentPassword,password);
+        if(!passwordExists){
+            throw new UnauthorizedException('incorrect Password');
+        }
+        if(dto.currentPassword==dto.newPassword){
+            throw new BadRequestException('new password should be diferent from old password');
+        }
+        const hashPassowrd=await bcrypt.hash(dto.newPassword,10);
+        await this.prisma.user.update({where:{id},data:{password:hashPassowrd}});
+        return {
+            message:'password changed successfully'
+        };
+    }
+   
 }
