@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Post, Request, UseGuards,Get, Patch } from "@nestjs/common";
+import { Body, Controller, Post, Request, UseGuards,Get, Patch, Req } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { UpdateDto } from "./dto/update.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
 @Controller('auth')
 export class AuthController{
     constructor(private readonly authService:AuthService){}
@@ -33,5 +34,10 @@ export class AuthController{
     @Patch('change-password')
     async changePassword(@Req()req:any,@Body() dto:ChangePasswordDto){
         return this.authService.changePassword(req.user.userId,dto);
+    }
+    @Get('refresh')
+    async getRefreshToken(@Body() dto:RefreshTokenDto){
+        return this.authService.refreshToken(dto);
+
     }
 }

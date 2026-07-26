@@ -15,7 +15,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: {
         expiresIn: 60*5,
       },
-    }),
+    },
+    secret:process.env.JWT_REFRESH_SECRET,
+    signOptions:{
+      expiresIn:100*30,
+    },
+  ),
   ],
   controllers: [AuthController],
   providers: [AuthService, PrismaService,JwtStrategy],

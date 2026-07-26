@@ -8,6 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateDto } from './dto/update.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 @Injectable()
 export class AuthService{
     constructor(
@@ -55,7 +56,10 @@ export class AuthService{
             email:user.email
         };
         const accessToken=this.jwtService.sign(payload);
-        return {accessToken};
+        const refreshToken=this.jwtService.sign(payload);
+        const hashedRefreshToken=await bcrypt.hash(refreshToken,10);
+        await this.prisma.user.update({where:{user.email},data:{refreshToken:hashedRefreshToken}});
+        return {accessToken,refreshToken};
     }
     async getMe(id:string){
         const user=await this.prisma.user.findUnique({where:{id:id}});
@@ -109,6 +113,25 @@ export class AuthService{
         return {
             message:'password changed successfully'
         };
+    }
+    async refreshToken(dto:RefreshTokenDto){
+        const user=await this.prisma.user.findUnique({where:{dto.refreshToken}});
+        if(user){
+            const refreshToken=await bcrypt.compare(user.refreshToken,dto.refreshToken);
+            if(refreshToken){
+                const payload={user.email,user,password};
+                const accessToken=this.jwtService.sign(payload);
+                return accessToken;
+            }else{
+                return{
+                    msg:'Invalid refresh token'
+                };
+            }
+        }else{
+                return{msg:'invalid user'};
+            }
+            
+        }
     }
    
 }
