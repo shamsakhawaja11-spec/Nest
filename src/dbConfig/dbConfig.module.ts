@@ -26,6 +26,9 @@ export const dbConfig={
         },
         DBConfigService,
     ],
-    exports:[]
+
+    exports:[DBConfigService]
 })
-export class ConfigModule{}
+export class ConfigModule{
+        
+}
